@@ -8,8 +8,8 @@
 #include "../headers/utils.hpp"
 #include "../headers/pointer.tcc"
 #include <algorithm>
-#include <filesystem>
-#include <bits/c++config.h>
+
+
 
 template<class Record>
 struct Bucket
@@ -97,8 +97,8 @@ struct Bucket
     void clear ()
     {
         set_size(0);
-        std::filesystem::resize_file(
-            header.data.filePath.data(), sizeof(Header));
+//        std::filesystem::resize_file(
+//            header.data.filePath.data(), sizeof(Header));
     }
 
     void set_size (std::size_t s)

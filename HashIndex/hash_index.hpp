@@ -6,6 +6,9 @@
 #define MEMORYMAP_HASH_INDEX_HPP
 
 #include "bucket.hpp"
+#include <optional>
+#include <vector>
+
 
 template<class Record, int N,
     class Hash = std::hash<decltype(get_key(std::declval<const Record&>()))>>
@@ -160,9 +163,10 @@ struct HashIndex
             Bucket entry = *ptr;
             std::cout << entry.header.data.filePath << " -> ";
             std::cout << "(" << entry.header.depth << ")" << ' ';
+            std::cout<<'\n';
             for (auto i : entry)
             {
-                std::cout << get_key(i) << ' ';
+                std::cout << i << '\n';
             }
             std::cout << '\n';
         }
