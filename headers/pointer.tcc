@@ -23,10 +23,10 @@ constexpr long sizeOf<void> ()
     return 1;
 }
 
-template<class T = void, std::size_t NAME_LEN = 8>
+template<class T = void, std::size_t NAME_LEN = 32>
 struct Pointer;
 
-template<class T = void, std::size_t NAME_LEN = 8>
+template<class T = void, std::size_t NAME_LEN = 32>
 struct ReversePointer;
 
 template<template<class T, std::size_t NAME_LEN> class DerivedTmpl, class T, std::size_t NAME_LEN, long VALUE_SZ_ = sizeOf<T>()>

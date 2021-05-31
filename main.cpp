@@ -33,9 +33,10 @@ std::ostream& operator << (std::ostream& os, const Record& r)
 int main (int argc, char* argv[])
 {
     _chdir("..");
+    constexpr char name[] = "hash_files/index";
 
     {
-        HashIndex<Record, 3> hashIndex("index", Pointer<>::CTE_FILE);
+        HashIndex<Record, 3> hashIndex(name, Pointer<>::CTE_FILE);
         hashIndex.push(Record{ 1, MALE, "peto" });
         hashIndex.push(Record{ 2, MALE, "pato" });
         hashIndex.push(Record{ 4, FEMALE, "pata" });
@@ -44,14 +45,14 @@ int main (int argc, char* argv[])
         hashIndex.print();
     }
     {
-        HashIndex<Record, 3> hashIndex("index", Pointer<>::WTE_FILE);
+        HashIndex<Record, 3> hashIndex(name, Pointer<>::WTE_FILE);
         auto val = hashIndex.find(4);
         assert(val.has_value());
         std::cout << val.value() << "\n\n";
         assert(!hashIndex.find(7).has_value());
     }
     {
-        HashIndex<Record, 3> hashIndexCopy("index", Pointer<>::WTE_FILE);
+        HashIndex<Record, 3> hashIndexCopy(name, Pointer<>::WTE_FILE);
         hashIndexCopy.print();
 
         auto val = hashIndexCopy.find(6);

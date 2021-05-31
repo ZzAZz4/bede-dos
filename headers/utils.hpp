@@ -20,8 +20,8 @@ auto random_name ()
     static constexpr char charset[] =
         "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    auto name = fixed_string<8>();
-    for (int i = 0; i < 7; ++i)
+    auto name = fixed_string<32>("hash_files/buckets/");
+    for (int i = 19; i < 30; ++i)
         name[i] = charset[(unsigned) rand() % (sizeof(charset) - 1)];
 
     return name;
