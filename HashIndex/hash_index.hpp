@@ -17,55 +17,26 @@ struct HashIndex
     using Key = decltype(get_key(std::declval<const Record&>()));
     using Bucket = Bucket<Record>;
     using Mode = Pointer<>::Mode;
-    using Name = fixed_string<8>;
+    using Name = fixed_string<32>;
 
     inline static Hash hash_base = Hash();
 
     struct Directory
     {
         Pointer<Pointer<Bucket>> data;
-        std::size_t size{};
-        std::size_t depth{};
-        std::size_t active{};
+        std::size_t size = 1;
+        std::size_t depth = 0;
+        std::size_t active_on_depth = 1;
     };
 
     Directory buckets;
 
-
-    [[nodiscard]] auto begin () const noexcept
-    { return buckets.data; }
-
-    [[nodiscard]] auto size () const noexcept
-    { return buckets.size; }
-
-    [[nodiscard]] auto end () const noexcept
-    { return begin() + size(); }
-
-    explicit
-    HashIndex (Name name, Mode mode = Pointer<>::WTE_FILE)
+    explicit HashIndex (Name name, Mode mode = Pointer<>::WTE_FILE)
     {
-        Pointer<Directory> directory_ptr(name, 0);
         if (mode == Pointer<>::CTE_FILE)
-        {
-            {
-                std::fstream tmp(name.data(), mode);
-            }
-            buckets.data = Pointer<Pointer<Bucket>>(name, sizeof(buckets));
-            buckets.size = 1;
-            buckets.depth = 0;
-            buckets.active = 1;
-
-            auto bucket = make_bucket<Record>(buckets.depth);
-            directory_ptr.set(buckets);
-            buckets.data.set(bucket);
-        }
-        else buckets = *directory_ptr;
-    }
-
-    void reload ()
-    {
-        Pointer<Directory> directory_ptr(buckets.data.filePath, 0);
-        buckets = *directory_ptr;
+            create_index_file(name);
+        else
+            load_from_memory(name);
     }
 
     bool push (const Record& record)
@@ -76,7 +47,8 @@ struct HashIndex
 
         if (success && bucket.size() > N)
         {
-            if (bucket.header.depth == buckets.depth) extend_table();
+            if (bucket.header.depth == buckets.depth)
+                extend_table();
             split_at(index);
         }
         return success;
@@ -90,8 +62,10 @@ struct HashIndex
 
         if (success && bucket.header.size == 0 && buckets.size > 1)
         {
-            merge_at(index & ~(1 << (buckets.depth - 1)));
-            if (!buckets.active) shrink_table();
+            const int index_to_merge = index & ~(1 << (buckets.depth - 1));
+            merge_into(index_to_merge);
+            if (!buckets.active_on_depth)
+                shrink_table();
         }
         return success;
     }
@@ -111,27 +85,22 @@ struct HashIndex
     void extend_table ()
     {
         Pointer<Directory> ptr(this->buckets.data.filePath, 0);
-        buckets.depth++;
-        auto size = buckets.size;
-        buckets.size *= 2;
-        for (int i = size; i < buckets.size; ++i)
-        {
-            (buckets.data + i).set(buckets.data[i - size]);
-        }
-        buckets.active = 0;
+
+        for (int i = buckets.size; i < 2 * buckets.size; ++i)
+            (buckets.data + i).set(buckets.data[i - buckets.size]);
+
+        buckets.depth++, buckets.size *= 2, buckets.active_on_depth = 0;
         ptr.set(buckets);
     }
 
     void shrink_table ()
     {
         Pointer<Directory> ptr(this->buckets.data.filePath, 0);
-        buckets.depth--;
-        buckets.size >>= 1;
-        buckets.active = 0;
+        buckets.depth--, buckets.size /= 2, buckets.active_on_depth = 0;
         for (auto i : *this)
         {
             if ((*i).header.depth == buckets.depth)
-                ++buckets.active;
+                ++buckets.active_on_depth;
         }
         ptr.set(buckets);
     }
@@ -159,10 +128,10 @@ struct HashIndex
         {
             newBucket.push_unsafe(*it);
         }
-        set_active(buckets.active + 2);
+        set_active(buckets.active_on_depth + 2);
     }
 
-    void merge_at (int index)
+    void merge_into (int index)
     {
         auto other = index | 1 << (buckets.depth - 1);
 
@@ -174,16 +143,18 @@ struct HashIndex
         else
             oth.set(tmp);
         (**cur).set_depth((**cur).header.depth - 1);
-        set_active(buckets.active - 2);
+        set_active(buckets.active_on_depth - 2);
     }
 
-    void set_active (std::size_t active)
-    {
-        Pointer<std::size_t> ptr(
-            buckets.data.filePath, offsetof(Directory, active));
-        ptr.set(active);
-        buckets.active = active;
-    }
+
+    [[nodiscard]] auto begin () const noexcept
+    { return buckets.data; }
+
+    [[nodiscard]] auto size () const noexcept
+    { return buckets.size; }
+
+    [[nodiscard]] auto end () const noexcept
+    { return begin() + size(); }
 
     void print () const
     {
@@ -201,9 +172,36 @@ struct HashIndex
         }
     }
 
-    [[nodiscard]] auto hash (const Key& key) const
+private:
+    [[nodiscard]]
+    auto hash (const Key& key) const
     {
         return hash_base(key) % (1 << buckets.depth);
+    }
+
+    void create_index_file (Name& name)
+    {
+        Pointer<Directory> directory_ptr(name, 0);
+        {
+            volatile std::fstream tmp(name.data(), Pointer<>::CTE_FILE);
+        }
+        buckets = Directory{
+            .data = Pointer<Pointer<Bucket>>(name, sizeof(buckets)) };
+
+        auto bucket = make_bucket<Record>(buckets.depth);
+        directory_ptr.set(buckets);
+        buckets.data.set(bucket);
+    }
+
+    void load_from_memory (Name& name)
+    { buckets = *Pointer<Directory>(name, 0); }
+
+    void set_active (std::size_t active)
+    {
+        Pointer<std::size_t> ptr(
+            buckets.data.filePath, offsetof(Directory, active_on_depth));
+        ptr.set(active);
+        buckets.active_on_depth = active;
     }
 };
 

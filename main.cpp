@@ -38,6 +38,7 @@ std::ostream& operator << (std::ostream& os, const Record& r)
 int main (int argc, char* argv[])
 {
     _chdir("..");
+    constexpr char name[] = "hash_files/index";
 
 //    {
 //        HashIndex<Record, 3> hashIndex("index", Pointer<>::CTE_FILE);
@@ -79,6 +80,7 @@ int main (int argc, char* argv[])
 //           std::getline(std::cin,query);
 //           parsersql(query);
 //        }
+
 
 
 

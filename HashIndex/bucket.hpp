@@ -8,36 +8,48 @@
 #include "../headers/utils.hpp"
 #include "../headers/pointer.tcc"
 #include <algorithm>
-//#include <filesystem>
+
+
 
 template<class Record>
 struct Bucket
 {
     using Mode = Pointer<>::Mode;
-    using Name = fixed_string<8>;
+    using Name = fixed_string<32>;
+    using Key = decltype(get_key(std::declval<const Record&>()));
+
     struct Header
     {
         Pointer<Record> data;
         std::size_t size = 0;
         std::size_t depth = 0;
     };
-    using Key = decltype(get_key(std::declval<const Record&>()));
-
     Header header;
 
     explicit
     Bucket (Name name, std::size_t depth = 0, Mode mode = Pointer<>::WTE_FILE)
     {
-        Pointer<Header> headerPtr(name, 0);
         if (mode == Pointer<>::CTE_FILE)
-        {
-            { std::fstream tmp(name.data(), mode); }
-            header.data = Pointer<Record>(name, sizeof(header));
-            header.size = 0;
-            header.depth = depth;
-            headerPtr.set(header);
-        }
-        else header = *headerPtr;
+            create_bucket_file(name, depth);
+        else
+            load_from_memory(name);
+
+    }
+
+    void load_from_memory (const Name& name)
+    {
+        Pointer<Header> headerPtr(name, 0);
+        header = *headerPtr;
+    }
+
+    void create_bucket_file (Name& name, std::size_t depth)
+    {
+        Pointer<Header> headerPtr(name, 0);
+        { std::fstream tmp(name.data(), Pointer<>::CTE_FILE); }
+        header.data = Pointer<Record>(name, sizeof(header));
+        header.size = 0;
+        header.depth = depth;
+        headerPtr.set(header);
     }
 
     [[nodiscard]] auto begin () const noexcept
