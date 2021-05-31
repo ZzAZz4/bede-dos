@@ -69,7 +69,7 @@ int main (int argc, char* argv[])
 //        hashIndexCopy.pop(4);
 //        hashIndexCopy.print();
 //    }
-        parsersql("insert into table Order from file ('test.csv') using index hash");
+        parsersql("insert into table Order from file ('winequality-red.csv') using index hash");
 //        parsersql("select * from Order using index hash");
 //        parsersql("select 2 from Order using index hash");
 //        parsersql("delete 2 from Order using index hash");

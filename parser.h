@@ -129,7 +129,6 @@ void hashController(const std::string& query){
 
 void checkDirectory(std::string query){
 
-
 }
 
 void parsersql(std::string query){
