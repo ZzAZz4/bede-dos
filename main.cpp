@@ -1,8 +1,10 @@
 #include "Stopwatch.hpp"
+
 namespace Sw = stopwatch;
 
 #include "library.h"
 #include "parser.h"
+#include "SeqIndex/seq_file.hpp"
 
 enum Gender
 {
@@ -36,7 +38,22 @@ std::ostream& operator << (std::ostream& os, const Record& r)
 int main (int argc, char* argv[])
 {
     _chdir("..");
-    constexpr char name[] = "hash_files/index";
+    constexpr char name[] = "seq_files/index";
+    constexpr char aux_name[] = "seq_files/aux_file";
+    SeqIndex<int> test(name, aux_name, Pointer<>::CTE_FILE);
+    test.push(3);
+    test.push(3);
+    test.push(1);
+    test.push(1);
+    test.push(2);
+    test.push(2);
+    for (auto i : test.find(1, 3))
+    {
+        std::cout << i << '\n';
+    }
+    assert(!test.find(5).has_value());
+    test.push(5);
+    assert(test.find(5).has_value());
 
 //    {
 //        HashIndex<Record, 3> hashIndex("index", Pointer<>::CTE_FILE);
@@ -68,10 +85,10 @@ int main (int argc, char* argv[])
 //        hashIndexCopy.pop(4);
 //        hashIndexCopy.print();
 //    }
-    Sw::ScopedStopwatch sw("parser");
-    parsersql(
-        "insert into table Order from file ('winequality-red.csv') using index hash");
-        parsersql("select * from Order using index hash");
+//    Sw::ScopedStopwatch sw("parser");
+//    parsersql(
+//        "insert into table Order from file ('winequality-red.csv') using index hash");
+//        parsersql("select * from Order using index hash");
 //        parsersql("select 2 from Order using index hash");
 //        parsersql("delete 2 from Order using index hash");
 //        parsersql("select * from Order using index hash");

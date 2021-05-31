@@ -95,16 +95,17 @@ struct SeqIndex
         return ret_val;
     }
 
-    NodePtr find_prev_main (const NodePtr& it) const
+
+    [[nodiscard]]
+    std::optional<Record> find (const Key& key) const
     {
-        if (it == vec_begin()) return it;
-        auto prev_it = it - 1;
-        while ((*prev_it).erased)
-        {
-            prev_it--;
-        }
-        return prev_it;
+        auto ret_val = find(key, key);
+        if (ret_val.empty()) return std::nullopt;
+        assert(ret_val.size() == 1);
+        return ret_val[0];
     }
+
+
 
     [[nodiscard]] auto vec_begin () const
     { return NodePtr(header.begin.filePath, sizeof(Header)); }
@@ -116,6 +117,16 @@ struct SeqIndex
     { return header.aux_alloc_pos; }
 
 private:
+    NodePtr find_prev_main (const NodePtr& it) const
+    {
+        if (it == vec_begin()) return it;
+        auto prev_it = it - 1;
+        while ((*prev_it).erased)
+        {
+            prev_it--;
+        }
+        return prev_it;
+    }
     void create_index_file (Name& name, Name& aux_name)
     {
         Pointer<Header> header_ptr(name, 0);
