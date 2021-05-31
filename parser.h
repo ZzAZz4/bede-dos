@@ -11,7 +11,7 @@
 
 void readCsv(const std::string& file = "test.csv"){
     std::fstream stream(file,std::ios::out | std::ios::in);
-    HashIndex<wineQuality, 3> hashIndex("index", Pointer<>::CTE_FILE);
+    HashIndex<wineQuality, 200> hashIndex("index", Pointer<>::CTE_FILE);
 
     if(!stream.is_open()){
         std::cout<<"FILE NOT FOUND\n";

@@ -82,6 +82,15 @@ struct Bucket
         return true;
     }
 
+    // Only call if it's empty
+    bool push_unsafe_on_empty (const Record* record_arr, int size)
+    {
+        auto stream = this->end().stream();
+        stream.write((char*)(void*)record_arr, sizeof(Record) * size);
+        set_size(size);
+        return true;
+    }
+
     bool pop_unsafe (const Key key)
     {
         auto eq = [&key] (const auto& it) { return get_key(it) == key; };

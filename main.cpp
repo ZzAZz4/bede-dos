@@ -1,3 +1,6 @@
+#include "Stopwatch.hpp"
+namespace Sw = stopwatch;
+
 #include "library.h"
 #include "parser.h"
 
@@ -28,11 +31,6 @@ std::ostream& operator << (std::ostream& os, const Record& r)
        << ' ' << r.name;
     return os;
 }
-
-
-
-
-
 
 
 int main (int argc, char* argv[])
@@ -70,8 +68,10 @@ int main (int argc, char* argv[])
 //        hashIndexCopy.pop(4);
 //        hashIndexCopy.print();
 //    }
-        parsersql("insert into table Order from file ('winequality-red.csv') using index hash");
-//        parsersql("select * from Order using index hash");
+    Sw::ScopedStopwatch sw("parser");
+    parsersql(
+        "insert into table Order from file ('winequality-red.csv') using index hash");
+        parsersql("select * from Order using index hash");
 //        parsersql("select 2 from Order using index hash");
 //        parsersql("delete 2 from Order using index hash");
 //        parsersql("select * from Order using index hash");

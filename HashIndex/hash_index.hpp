@@ -107,7 +107,6 @@ struct HashIndex
 
     void split_at (int index)
     {
-        auto cond = [=] (const auto& i) { return hash(get_key(i)) == index; };
         auto newIndex = index | 1 << (buckets.depth - 1);
 
         auto curBucket = *buckets.data[index];
@@ -118,16 +117,12 @@ struct HashIndex
 
         auto entries = std::vector<Record>(curBucket.begin(), curBucket.end());
         curBucket.clear();
-
+        auto cond = [=] (const auto& i) { return hash(get_key(i)) == index; };
         auto split = std::partition(entries.begin(), entries.end(), cond);
-        for (auto it = entries.begin(); it != split; ++it)
-        {
-            curBucket.push_unsafe(*it);
-        }
-        for (auto it = split; it != entries.end(); ++it)
-        {
-            newBucket.push_unsafe(*it);
-        }
+
+        curBucket.push_unsafe_on_empty(entries.begin().base(), std::distance(entries.begin(), split));
+        newBucket.push_unsafe_on_empty(split.base(), std::distance(split, entries.end()));
+
         set_active(buckets.active_on_depth + 2);
     }
 
