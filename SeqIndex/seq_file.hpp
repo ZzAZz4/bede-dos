@@ -29,7 +29,8 @@ template<class Record>
 struct SeqIndex
 {
     using Key = decltype(get_key(std::declval<const Record&>()));
-    using NodePtr = Pointer<Node<Record>>;
+    using Node = Node<Record>;
+    using NodePtr = Pointer<Node>;
     using Name = fixed_string<32>;
     using Mode = Pointer<>::Mode;
 //    using NodeIter = typename Node::Iterator;
@@ -37,8 +38,8 @@ struct SeqIndex
 
     struct Header
     {
-        Pointer<Node<Record>> begin;
-        Pointer<Node<Record>> aux_begin;
+        Pointer<Node> begin;
+        Pointer<Node> aux_begin;
         int main_alloc_pos = 0;
         int aux_alloc_pos = 0;
     };
@@ -101,32 +102,70 @@ struct SeqIndex
     {
         //locate the node to delete
         const auto it = std::lower_bound(vec_begin(), vec_end(), elem, compare);
+
+        if (it == vec_end()) return false;
         //if found at the beginning simply mark as deleted
-        if (it == vec_begin())
+        auto it_node = (*it);
+        if (get_key(it_node.data) == get_key(elem))
         {
-            //probably should get rid of dependencies too
-            auto a = *it;
-            a.erased = false;
-            it.set(a);
-            header.main_alloc_pos--;
+            auto begin = vec_begin();
+            if (it == begin) {
+                auto begin_node = *begin;
+                if (begin_node.next != vec_end() && begin_node.next != begin + 1) {
+                    begin.set(*begin_node.next);
+                }
+                else {
+                    begin_node.erased = true;
+                    begin.set(begin_node);
+                    ++header.begin;
+                    --header.main_alloc_pos;
+                    Pointer<Header>(header.begin.filePath, 0).set(header);
+                }
+            }
+            else if (it == vec_end() - 1) {
+                auto prev = it - 1;
+                auto prev_node = *prev;
+                if (prev_node.next == it)
+                {
+                    --header.main_alloc_pos;
+                    Pointer<Header>(header.begin.filePath, 0).set(header);
+                }
+                else {
+                    auto repl = prev_node.next;
+                    auto repl_node = *repl;
+                    repl_node.next = it_node.next;
+                    it.set(repl_node);
+                    prev_node.next = it;
+                    prev.set(prev_node);
+                }
+            }
+            else // in middle of main
+            {
+                auto next_ptr = it_node.next;
+                auto next_node = *next_ptr;
+                it.set(next_node);
+                next_node.erased = true;
+                next_ptr.set(next_node);
+            }
             return true;
         }
-         //si es end, vete a end - 1 y sigue la chain, pq solo puede estar ahi
-        if (it == vec_end())
+        else // maybe in chain
         {
-            //get previous, set next as null
-            /*
-            //some operation to get the previous one it_prev
-            auto a_prev = *it_prev;
-            a_prev.next = nullptr;
-            *it_prev.set(a_prev);
-            */
-            auto a = *it;
-            a.erased = false;
-            it.set(a);
-            header.main_alloc_pos--;
-            return true;
+            if (it == vec_begin()) return false;
+            auto prev = begin_unsafe_get_less_ptr(elem, it);
+            auto prev_node = *prev;
+            auto next = prev_node.next;
+            auto next_node = *next;
+            if (get_key(next_node.data) == get_key(elem)) {
+                prev_node.next = next_node.next;
+                next_node.erased = true;
+                prev.set(prev_node);
+                next.set(next_node);
+                return true;
+            }
+            else return false;
         }
+
         //if found in the middle, change pointers
         /*
         something something. change pointer from prev to node-to-delete's next
@@ -184,9 +223,12 @@ struct SeqIndex
     void print () const
     {
         auto it = vec_begin();
-        for (; it != vec_end(); ){
-            std::cout<<(*it).data<<'\n';
-            it = (*it).next;
+        auto end_it = vec_end();
+        for (; it != end_it; it = (*it).next){
+            auto it_node = (*it);
+            if (it_node.erased)
+                continue;
+            std::cout<<it_node.data<<'\n';
         }
     }
 
@@ -263,8 +305,8 @@ private:
     {
         // case for when the previous is deleted goes somewhere over here, probs
 
-        // or maybe inside begin_unsafe_get_prev_ptr, who knows.
-        const auto prev_ptr = begin_unsafe_get_prev_ptr(elem, it);
+        // or maybe inside begin_unsafe_get_leq_ptr, who knows.
+        const auto prev_ptr = begin_unsafe_get_leq_ptr(elem, it);
         if (get_key((*prev_ptr).data) == get_key(elem)) return false;
 
         const auto new_ptr = NodePtr(header.aux_begin.filePath, 0) + aux_size();
@@ -283,14 +325,28 @@ private:
     }
 
     [[nodiscard]]
-    auto begin_unsafe_get_prev_ptr (const Record& elem, NodePtr it) const
+    auto begin_unsafe_get_leq_ptr (const Record& elem, NodePtr it) const
     {
         NodePtr prev_it = it - 1;
 
         for (;;)
         {
-            Node<Record> prev_node = *prev_it;
+            Node prev_node = *prev_it;
             if (get_key((*(prev_node.next)).data) > get_key(elem))
+                return prev_it;
+            prev_it = prev_node.next;
+        }
+    }
+
+    [[nodiscard]]
+    auto begin_unsafe_get_less_ptr (const Key& elem, NodePtr it) const
+    {
+        NodePtr prev_it = it - 1;
+
+        for (;;)
+        {
+            Node prev_node = *prev_it;
+            if (!(get_key((*(prev_node.next)).data) < get_key(elem)))
                 return prev_it;
             prev_it = prev_node.next;
         }
