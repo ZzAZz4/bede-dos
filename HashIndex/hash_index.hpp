@@ -84,6 +84,24 @@ struct HashIndex
         return std::nullopt;
     }
 
+    std::vector <Record> find ( Key& first,  Key&last)
+    {
+        std::vector <Record> ret_val;
+        for (Pointer<Bucket> ptr : *this)
+        {
+            Bucket entry = *ptr;
+            std::cout << entry.header.data.filePath << " -> ";
+            std::cout << "(" << entry.header.depth << ")" << ' ';
+            std::cout<<'\n';
+            for (auto i : entry)
+            {
+                if (first <= i.key() && i.key()<= last) {ret_val.push_back(i); std::cout<<i<<'\n';}
+            }
+        }
+        return ret_val;
+
+    }
+
     void extend_table ()
     {
         Pointer<Directory> ptr(this->buckets.data.filePath, 0);
