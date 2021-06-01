@@ -96,23 +96,18 @@ struct SeqIndex
 
     }
 
-    bool pop(const Key& elem){
-
-        return false;
-
-    }
 
     bool pop (const Key& elem)
     {
         //locate the node to delete
-        const auto it = lower_bound(vec_begin(), vec_end(), elem, compare);
+        const auto it = std::lower_bound(vec_begin(), vec_end(), elem, compare);
         //if found at the beginning simply mark as deleted
         if (it == vec_begin())
         {
             //probably should get rid of dependencies too
             auto a = *it;
             a.erased = false;
-            *it.set(a);
+            it.set(a);
             header.main_alloc_pos--;
             return true;
         }
@@ -128,7 +123,7 @@ struct SeqIndex
             */
             auto a = *it;
             a.erased = false;
-            *it.set(a);
+            it.set(a);
             header.main_alloc_pos--;
             return true;
         }
@@ -173,10 +168,11 @@ struct SeqIndex
         return ret_val[0];
     }
 
-
+    [[nodiscard]] auto buffer_begin () const
+    { NodePtr(header.begin.filePath, sizeof(Header)); }
 
     [[nodiscard]] auto vec_begin () const
-    { return NodePtr(header.begin.filePath, sizeof(Header)); }
+    { return header.begin; }
 
     [[nodiscard]] auto vec_end () const
     { return vec_begin() + header.main_alloc_pos; }
