@@ -92,7 +92,7 @@ struct SeqIndex
         //if found in the middle, change pointers
         
         //if found in aux, change pointers
-        
+
 
         //if it points to other registers in aux, handle those connections
 
