@@ -98,10 +98,18 @@ void IndexController(const std::string& query){
         }
         else if(buffer != "from"){
             std::stringstream  iss_2(query.substr(findPos ));
+            std::string rangeBuffer;
             decltype(get_key(std::declval<const wineQuality&>())) val;
             iss_2 >>val;
+            iss_2>>rangeBuffer;
+            if(rangeBuffer == ":"){
+                decltype(get_key(std::declval<const wineQuality&>())) val2;
+                iss_2 >> val2;
+                Index.find( val,val2);
 
-            std::cout<<Index.find( val).value()<<'\n';
+            }else std::cout<<Index.find( val).value()<<'\n';
+
+
         }
         else{
             std::cerr<<"did not specify any kind of key";
