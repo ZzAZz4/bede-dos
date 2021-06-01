@@ -78,7 +78,7 @@ struct SeqIndex
 
     }
 
-    bool pop (const Record& elem)
+    bool pop (const Key& elem)
     {
         //locate the node to delete
         const auto it = lower_bound(vec_begin(), vec_end(), elem, compare);
