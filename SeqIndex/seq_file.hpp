@@ -102,6 +102,48 @@ struct SeqIndex
 
     }
 
+    bool pop (const Key& elem)
+    {
+        //locate the node to delete
+        const auto it = lower_bound(vec_begin(), vec_end(), elem, compare);
+        //if found at the beginning simply mark as deleted
+        if (it == vec_begin())
+        {
+            //probably should get rid of dependencies too
+            auto a = *it;
+            a.erased = false;
+            *it.set(a);
+            header.main_alloc_pos--;
+            return true;
+        }
+         //si es end, vete a end - 1 y sigue la chain, pq solo puede estar ahi
+        if (it == vec_end())
+        {
+            //get previous, set next as null
+            /*
+            //some operation to get the previous one it_prev
+            auto a_prev = *it_prev;
+            a_prev.next = nullptr;
+            *it_prev.set(a_prev);
+            */
+            auto a = *it;
+            a.erased = false;
+            *it.set(a);
+            header.main_alloc_pos--;
+            return true;
+        }
+        //if found in the middle, change pointers
+        /*
+        something something. change pointer from prev to node-to-delete's next
+        */
+        //if found in aux, flattening
+        //same as previous but know that you're moving things from one array to the other
+        //do the header.aux_alloc_pos--; thing
+
+        //if it points to other registers in aux, handle those connections
+
+    }
+
     [[nodiscard]]
     std::vector <Record> find (const Key& first, const Key& last) const
     {
