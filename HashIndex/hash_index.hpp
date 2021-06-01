@@ -190,6 +190,25 @@ private:
         buckets.data.set(bucket);
     }
 
+    [[nodiscard]]
+    std::vector <Record> find (const Key& first, const Key&last) const
+    {
+        std::vector <Record> ret_val;
+        for (Pointer<Bucket> ptr : *this)
+        {
+            Bucket entry = *ptr;
+            std::cout << entry.header.data.filePath << " -> ";
+            std::cout << "(" << entry.header.depth << ")" << ' ';
+            std::cout<<'\n';
+            for (auto i : entry)
+            {
+                if (first <= i && i<= last)
+                    ret_val.push_back(i);
+            }
+        }
+        return ret_val;
+    }
+
     void load_from_memory (Name& name)
     { buckets = *Pointer<Directory>(name, 0); }
 
