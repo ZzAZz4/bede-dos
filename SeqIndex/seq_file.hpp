@@ -33,6 +33,7 @@ struct SeqIndex
     using Name = fixed_string<32>;
     using Mode = Pointer<>::Mode;
 //    using NodeIter = typename Node::Iterator;
+    Name header_name;
 
     struct Header
     {
@@ -44,12 +45,20 @@ struct SeqIndex
     Header header;
 
     explicit SeqIndex (
-        Name name, Name aux_name, Mode mode = Pointer<>::WTE_FILE)
+        Name name, Mode mode = Pointer<>::WTE_FILE): header_name("seq_files/index")
     {
-        if (mode == Pointer<>::CTE_FILE)
-            create_index_file(name, aux_name);
+        constexpr char n[] = "seq_files/index";
+        constexpr char aux[]= "seq_files/aux_file";
+        Name na(n);
+        Name a(aux);
+
+
+        if (mode == Pointer<>::CTE_FILE){
+
+            create_index_file(na, a);
+        }
         else
-            load_from_memory(name);
+            load_from_memory(na);
     }
 
     static constexpr auto compare = [] (const auto& it, const auto& a)
@@ -57,24 +66,39 @@ struct SeqIndex
         return !it.erased && get_key(it.data) < get_key(a);
     };
 
+
+
     bool push (const Record& elem)
     {
+        bool success = false;
         const auto it = std::lower_bound(vec_begin(), vec_end(), elem, compare);
         if (it == vec_end())
         {
             push_back(elem);
-            return true;
+            success = true;
         }
         // there should be a case when the element is erased
-        if (get_key((*it).data) == get_key(elem)) return false;
-        // erase previous return false; and add the following instead(?):
-        // {if ((*it).erased) == true) {(*it).erased == true; return true;} return false;}
-        if (it == vec_begin())
+        else if (get_key((*it).data) == get_key(elem)) success = false;
+        else if (it == vec_begin())
         {
             push_front(elem);
-            return true;
+            success = true;
         }
-        else return try_insert_before(elem, it);
+        else success =  try_insert_before(elem, it);
+
+
+        if(success){
+            Pointer<Header> header_ptr(header_name, 0);
+            header_ptr.set(header);
+        }
+
+        return success;
+
+    }
+
+    bool pop(const Key& elem){
+
+        return false;
 
     }
 
@@ -159,6 +183,16 @@ struct SeqIndex
 
     [[nodiscard]] auto aux_size () const
     { return header.aux_alloc_pos; }
+
+
+    void print () const
+    {
+        auto it = vec_begin();
+        for (; it != vec_end(); ){
+            std::cout<<(*it).data<<'\n';
+            it = (*it).next;
+        }
+    }
 
 private:
     NodePtr find_prev_main (const NodePtr& it) const

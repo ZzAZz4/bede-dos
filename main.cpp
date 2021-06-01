@@ -40,20 +40,34 @@ int main (int argc, char* argv[])
     _chdir("..");
     constexpr char name[] = "seq_files/index";
     constexpr char aux_name[] = "seq_files/aux_file";
-    SeqIndex<int> test(name, aux_name, Pointer<>::CTE_FILE);
-    test.push(3);
-    test.push(3);
-    test.push(1);
-    test.push(1);
-    test.push(2);
-    test.push(2);
-    for (auto i : test.find(1, 3))
-    {
-        std::cout << i << '\n';
-    }
-    assert(!test.find(5).has_value());
-    test.push(5);
-    assert(test.find(5).has_value());
+
+//    parsersql(
+//        "insert into table Order from file ('test100.csv') using index hash");
+
+
+
+//    parsersql("select 3 using index hash");
+//    SeqIndex<wineQuality> test(name, Pointer<>::WTE_FILE);
+//    test.push({0, 7.4,0.7,0.0,1.9,0.076,11.0,34.0,0.9978,3.51,0.56,9.4 });
+//    test.push({1, 7.4,0.7,0.0,1.9,0.076,11.0,34.0,0.9978,3.51,0.56,9.4 });
+//    test.push({2, 7.4,0.7,0.0,1.9,0.076,11.0,34.0,0.9978,3.51,0.56,9.4 });
+//    test.push({10, 7.4,0.7,0.0,1.9,0.076,11.0,34.0,0.9978,3.51,0.56,9.4 });
+//    test.push({4, 7.4,0.7,0.0,1.9,0.076,11.0,34.0,0.9978,3.51,0.56,9.4 });
+
+//    test.print();
+
+
+
+
+
+
+//    for (auto i : test.find(0, 10))
+//    {
+//        std::cout << i << '\n';
+//    }
+//    assert(!test.find(5).has_value());
+//    test.push(5);
+//    assert(test.find(5).has_value());
 
 //    {
 //        HashIndex<Record, 3> hashIndex("index", Pointer<>::CTE_FILE);
@@ -98,6 +112,15 @@ int main (int argc, char* argv[])
 //           parsersql(query);
 //        }
 
+    int size = 100;
+    HashIndex<wineQuality> hashIndexCopy("index", Pointer<>::WTE_FILE);
+    for(int i = 0; i < 5; i ++) {
+        Sw::ScopedStopwatch<stopwatch::microseconds> sw("test");
+//        if (hashIndexCopy.push({ (i+1) * size + 5, 7.4, 0.7, 0.0, 1.9, 0.076, 11.0, 34.0, 0.9978, 3.51, 0.56, 9.4}))
+//            std::cout << "A ";
+//        if(hashIndexCopy.find(i * size ).has_value() ) std::cout<<"A ";
+    }
+    hashIndexCopy.print();
 
 
 

@@ -5,13 +5,17 @@
 #ifndef MEMORYMAP_PARSER_H
 #define MEMORYMAP_PARSER_H
 
+#include "SeqIndex/seq_file.hpp"
 #include "library.h"
 
 
+const int BucketSize = 200;
 
+
+template<typename T , template<class >  class IndexType>
 void readCsv(const std::string& file = "test.csv"){
     std::fstream stream(file,std::ios::out | std::ios::in);
-    HashIndex<wineQuality, 200> hashIndex("index", Pointer<>::CTE_FILE);
+    IndexType<T> Index("index", Pointer<>::CTE_FILE);
 
     if(!stream.is_open()){
         std::cout<<"FILE NOT FOUND\n";
@@ -21,6 +25,8 @@ void readCsv(const std::string& file = "test.csv"){
     std::string line;
     std::getline(stream, line); // skip the 1st line, you know why
     int index = 0;
+    int disrupter = rand();
+    int pushed = 0;
     while(std::getline(stream, line)){
         if (line.empty()) continue;// skip empty lines
 
@@ -31,7 +37,7 @@ void readCsv(const std::string& file = "test.csv"){
         wineQuality reg {};
 
         std::cout<<"index:"<<index<<'\n';
-        reg.id = index;
+        reg.id = index * rand() % (1500 * 10);
 
 
         iss>>reg.fixed_acidity;
@@ -59,17 +65,19 @@ void readCsv(const std::string& file = "test.csv"){
 //        debug line
 //        std::cout<<reg<<'\n';
 
-        hashIndex.push(reg);
+        if(!Index.push(reg)) pushed--;
         index++;
+        pushed++;
 
     }
+    std::cout<<"pushed"<<pushed<<"\n";
 
 }
 
 
-
-void hashController(const std::string& query){
-    HashIndex<wineQuality, 10> hashIndex("index", Pointer<>::WTE_FILE);
+template<typename T , template<class >  class IndexType = HashIndex>
+void IndexController(const std::string& query){
+    IndexType<T> Index("index", Pointer<>::WTE_FILE);
     int findPos = query.find("file",0);
 
     if(findPos != std::string::npos){
@@ -77,7 +85,7 @@ void hashController(const std::string& query){
         int findEnd = query.find("'", ++findPos);
         std::string filePath = query.substr(findPos, findEnd  - findPos);
         std::cout<<filePath<<'\n';
-        readCsv(filePath);
+        readCsv<T,IndexType>(filePath);
     }
     else if( (findPos = query.find("select")) != std::string::npos){
         findPos+=6;
@@ -86,14 +94,14 @@ void hashController(const std::string& query){
         iss>>buffer;
 
         if(buffer == "*"){
-            hashIndex.print();
+            Index.print();
         }
         else if(buffer != "from"){
             std::stringstream  iss_2(query.substr(findPos ));
             decltype(get_key(std::declval<const wineQuality&>())) val;
             iss_2 >>val;
 
-            std::cout<<hashIndex.find( val).value()<<'\n';
+            std::cout<<Index.find( val).value()<<'\n';
         }
         else{
             std::cerr<<"did not specify any kind of key";
@@ -113,7 +121,7 @@ void hashController(const std::string& query){
             decltype(get_key(std::declval<const wineQuality&>())) val;
             iss_2 >>val;
 
-            hashIndex.pop( val);
+            Index.pop( val);
         }
         else{
             std::cerr<<"did not specify any kind of key";
@@ -127,18 +135,10 @@ void hashController(const std::string& query){
 
 }
 
-void checkDirectory(std::string query){
-
-}
-
 void parsersql(std::string query){
     int usingPos = query.find("using",0);
     if(usingPos == std::string::npos) {std::cerr<<"Missing file structure in query" ; exit(-1) ; }
 
-    if(query.find("table") == std::string::npos){
-        checkDirectory(query.substr(query.find("Table") + 4));
-
-    }
 
     std::string  s1 = query.substr(usingPos + 5);
     std::string buffer;
@@ -150,10 +150,11 @@ void parsersql(std::string query){
     iss >> buffer;
     res += buffer;
     if(res == "index hash"){
-        hashController(query.substr(0,usingPos - 1));
+        IndexController<wineQuality,HashIndex>(query.substr(0,usingPos - 1));
     }
     else if(res == "sequential file"){
-        //sequController();
+        IndexController<wineQuality,SeqIndex>(query.substr(0,usingPos - 1));
+
     }
     else{
         std::cerr<<"file organization not supported  " ;
