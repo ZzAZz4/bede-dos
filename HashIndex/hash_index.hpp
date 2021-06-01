@@ -10,7 +10,7 @@
 #include <vector>
 
 
-template<class Record, int N,
+template<class Record,
     class Hash = std::hash<decltype(get_key(std::declval<const Record&>()))>>
 struct HashIndex
 {
@@ -18,6 +18,8 @@ struct HashIndex
     using Bucket = Bucket<Record>;
     using Mode = Pointer<>::Mode;
     using Name = fixed_string<32>;
+
+    int N;
 
     inline static Hash hash_base = Hash();
 
@@ -31,7 +33,7 @@ struct HashIndex
 
     Directory buckets;
 
-    explicit HashIndex (Name name, Mode mode = Pointer<>::WTE_FILE)
+    explicit HashIndex (Name name, Mode mode = Pointer<>::WTE_FILE ,  int BucketSize = 200):N(BucketSize)
     {
         if (mode == Pointer<>::CTE_FILE)
             create_index_file(name);
