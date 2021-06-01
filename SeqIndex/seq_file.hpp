@@ -67,12 +67,35 @@ struct SeqIndex
         }
         // there should be a case when the element is erased
         if (get_key((*it).data) == get_key(elem)) return false;
+        // erase previous return false; and add the following instead(?):
+        // {if ((*it).erased) == true) {(*it).erased == true; return true;}} return false;
         if (it == vec_begin())
         {
             push_front(elem);
             return true;
         }
         else return try_insert_before(elem, it);
+
+    }
+
+    bool pop (const Record& elem)
+    {
+        //locate the node to delete
+        const auto it = lower_bound(vec_begin(), vec_end(), elem, compare);
+        //if found at the beginning or end simply mark as deleted
+        if (it == vec_begin() || it == vec_end())
+        {
+            //probably should get rid of dependencies too
+            (*it).erased = false;
+            return true;
+        }
+        //if found in the middle, change pointers
+        
+        //if found in aux, change pointers
+        
+
+        //if it points to other registers in aux, handle those connections
+
 
     }
 
