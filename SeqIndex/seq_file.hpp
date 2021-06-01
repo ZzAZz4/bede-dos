@@ -68,7 +68,7 @@ struct SeqIndex
         // there should be a case when the element is erased
         if (get_key((*it).data) == get_key(elem)) return false;
         // erase previous return false; and add the following instead(?):
-        // {if ((*it).erased) == true) {(*it).erased == true; return true;}} return false;
+        // {if ((*it).erased) == true) {(*it).erased == true; return true;} return false;}
         if (it == vec_begin())
         {
             push_front(elem);
@@ -82,20 +82,41 @@ struct SeqIndex
     {
         //locate the node to delete
         const auto it = lower_bound(vec_begin(), vec_end(), elem, compare);
-        //if found at the beginning or end simply mark as deleted
-        if (it == vec_begin() || it == vec_end())
+        //if found at the beginning simply mark as deleted
+        if (it == vec_begin())
         {
             //probably should get rid of dependencies too
-            (*it).erased = false;
+            auto a = *it;
+            a.erased = false;
+            *it.set(a);
+            header.main_alloc_pos--;
+            return true;
+        }
+         //si es end, vete a end - 1 y sigue la chain, pq solo puede estar ahi
+        if (it == vec_end())
+        {
+            //get previous, set next as null
+            /*
+            //some operation to get the previous one it_prev
+            auto a_prev = *it_prev;
+            a_prev.next = nullptr;
+            *it_prev.set(a_prev);
+            */
+            auto a = *it;
+            a.erased = false;
+            *it.set(a);
+            header.main_alloc_pos--;
             return true;
         }
         //if found in the middle, change pointers
-        
-        //if found in aux, change pointers
-
+        /*
+        something something. change pointer from prev to node-to-delete's next
+        */
+        //if found in aux, flattening
+        //same as previous but know that you're moving things from one array to the other
+        //do the header.aux_alloc_pos--; thing
 
         //if it points to other registers in aux, handle those connections
-
 
     }
 
