@@ -36,8 +36,8 @@ void readCsv(const std::string& file = "test.csv"){
 
         wineQuality reg {};
 
-        std::cout<<"index:"<<index<<'\n';
-        reg.id = index * rand() % (1500 * 10);
+//        std::cout<<"index:"<<index<<'\n';
+        reg.id = index ;
 
 
         iss>>reg.fixed_acidity;
@@ -70,7 +70,7 @@ void readCsv(const std::string& file = "test.csv"){
         pushed++;
 
     }
-    std::cout<<"pushed"<<pushed<<"\n";
+    std::cout<<"pushed "<<pushed<<"\n";
 
 }
 

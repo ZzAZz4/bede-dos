@@ -112,7 +112,9 @@ namespace stopwatch
     public:
         explicit ScopedStopwatch (std::string name = "<unknown>")
             : Stopwatch(), name(std::move(name))
-        {}
+        {
+            start();
+        }
 
         ~ScopedStopwatch ()
         {
