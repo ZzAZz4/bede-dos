@@ -151,6 +151,7 @@ int main (int argc, char* argv[])
 
 //    parsersql(
 //        "insert into table Order from file ('test100.csv') using index hash");
+
 //    parsersql(
 //        "select 384 : 1008 using index hash");
 

@@ -29,7 +29,8 @@ template<class Record>
 struct SeqIndex
 {
     using Key = decltype(get_key(std::declval<const Record&>()));
-    using NodePtr = Pointer<Node<Record>>;
+    using Node = Node<Record>;
+    using NodePtr = Pointer<Node>;
     using Name = fixed_string<32>;
     using Mode = Pointer<>::Mode;
 //    using NodeIter = typename Node::Iterator;
@@ -37,24 +38,25 @@ struct SeqIndex
 
     struct Header
     {
-        Pointer<Node<Record>> begin;
-        Pointer<Node<Record>> aux_begin;
+        Pointer<Node> begin;
+        Pointer<Node> aux_begin;
         int main_alloc_pos = 0;
         int aux_alloc_pos = 0;
     };
     Header header;
 
     explicit SeqIndex (
-        Name name, Mode mode = Pointer<>::WTE_FILE): header_name("seq_files/index")
+        Name name, Mode mode = Pointer<>::WTE_FILE) : header_name(
+        "seq_files/index")
     {
         constexpr char n[] = "seq_files/index";
-        constexpr char aux[]= "seq_files/aux_file";
+        constexpr char aux[] = "seq_files/aux_file";
         Name na(n);
         Name a(aux);
 
 
-        if (mode == Pointer<>::CTE_FILE){
-
+        if (mode == Pointer<>::CTE_FILE)
+        {
             create_index_file(na, a);
         }
         else
@@ -67,7 +69,6 @@ struct SeqIndex
     };
 
 
-
     bool push (const Record& elem)
     {
         bool success = false;
@@ -77,17 +78,18 @@ struct SeqIndex
             push_back(elem);
             success = true;
         }
-        // there should be a case when the element is erased
+            // there should be a case when the element is erased
         else if (get_key((*it).data) == get_key(elem)) success = false;
         else if (it == vec_begin())
         {
             push_front(elem);
             success = true;
         }
-        else success =  try_insert_before(elem, it);
+        else success = try_insert_before(elem, it);
 
 
-        if(success){
+        if (success)
+        {
             Pointer<Header> header_ptr(header_name, 0);
             header_ptr.set(header);
         }
@@ -96,49 +98,37 @@ struct SeqIndex
 
     }
 
+
     bool pop (const Key& elem)
     {
-//        //locate the node to delete
-//        const auto it = lower_bound(vec_begin(), vec_end(), elem, compare);
-//        //if found at the beginning simply mark as deleted
-//        if (it == vec_begin())
-//        {
-//            //probably should get rid of dependencies too
-//            auto a = *it;
-//            a.erased = false;
-//            *it.set(a);
-//            header.main_alloc_pos--;
-//            return true;
-//        }
-//         //si es end, vete a end - 1 y sigue la chain, pq solo puede estar ahi
-//        if (it == vec_end())
-//        {
-//            //get previous, set next as null
-//            /*
-//            //some operation to get the previous one it_prev
-//            auto a_prev = *it_prev;
-//            a_prev.next = nullptr;
-//            *it_prev.set(a_prev);
-//            */
-//            auto a = *it;
-//            a.erased = false;
-//            *it.set(a);
-//            header.main_alloc_pos--;
-//            return true;
-//        }
-//        //if found in the middle, change pointers
-//        /*
-//        something something. change pointer from prev to node-to-delete's next
-//        */
-//        //if found in aux, flattening
-//        //same as previous but know that you're moving things from one array to the other
-//        //do the header.aux_alloc_pos--; thing
-//
-//        //if it points to other registers in aux, handle those connections
+        //locate the node to delete
+        auto it = std::lower_bound(vec_begin(), vec_end(), elem, compare);
 
-        return false;
+        if (it == vec_end()) return false;
+
+        auto it_node = (*it);
+        if (get_key(it_node.data) == get_key(elem))
+        {
+            if (it == vec_begin()) pop_front();
+            else if (it == vec_end() - 1) pop_back();
+            else remove_from_main(it);
+            return true;
+        }
+        else return try_remove_from_aux(it, elem);
+
+        //if found in the middle, change pointers
+        /*
+        something something. change pointer from prev to node-to-delete's next
+        */
+        //if found in aux, flattening
+        //same as previous but know that you're moving things from one array to the other
+        //do the header.aux_alloc_pos--; thing
+
+        //if it points to other registers in aux, handle those connections
+
 
     }
+
 
     [[nodiscard]]
     std::vector <Record> find (const Key& first, const Key& last) const
@@ -161,7 +151,7 @@ struct SeqIndex
 
 
     [[nodiscard]]
-    std::optional<Record> find (const Key& key) const
+    std::optional <Record> find (const Key& key) const
     {
         auto ret_val = find(key, key);
         if (ret_val.empty()) return std::nullopt;
@@ -169,10 +159,11 @@ struct SeqIndex
         return ret_val[0];
     }
 
-
+    [[nodiscard]] auto buffer_begin () const
+    { return NodePtr(header.begin.filePath, sizeof(Header)); }
 
     [[nodiscard]] auto vec_begin () const
-    { return NodePtr(header.begin.filePath, sizeof(Header)); }
+    { return header.begin; }
 
     [[nodiscard]] auto vec_end () const
     { return vec_begin() + header.main_alloc_pos; }
@@ -184,9 +175,13 @@ struct SeqIndex
     void print () const
     {
         auto it = vec_begin();
-        for (; it != vec_end(); ){
-            std::cout<<(*it).data<<'\n';
-            it = (*it).next;
+        auto end_it = vec_end();
+        for (; it != end_it; it = (*it).next)
+        {
+            auto it_node = (*it);
+            if (it_node.erased)
+                continue;
+            std::cout << it_node.data << '\n';
         }
     }
 
@@ -201,6 +196,7 @@ private:
         }
         return prev_it;
     }
+
     void create_index_file (Name& name, Name& aux_name)
     {
         Pointer<Header> header_ptr(name, 0);
@@ -233,7 +229,18 @@ private:
         // so it would inmediately promote back. Idk about promotion and that,
         // so here is the hardcoded version.
 
+        // Including hardcoded popped case bcz yes
+
         auto begin = vec_begin();
+        if (std::distance(buffer_begin(), begin) > 0)
+        {
+            header.begin--;
+            header.main_alloc_pos++;
+            auto new_begin = vec_begin();
+            new_begin.set(Node(elem, begin));
+            return;
+        }
+
         auto new_ptr = allocate_after_begin(begin);
 
         auto begin_node = *begin;
@@ -252,7 +259,8 @@ private:
             begin.set(data);
             return next;
         }
-        if ((*next).erased) {
+        if ((*next).erased)
+        {
             return begin + 1;
         }
         header.aux_alloc_pos++;
@@ -263,8 +271,8 @@ private:
     {
         // case for when the previous is deleted goes somewhere over here, probs
 
-        // or maybe inside begin_unsafe_get_prev_ptr, who knows.
-        const auto prev_ptr = begin_unsafe_get_prev_ptr(elem, it);
+        // or maybe inside begin_unsafe_get_leq_ptr, who knows.
+        const auto prev_ptr = begin_unsafe_get_leq_ptr(elem, it);
         if (get_key((*prev_ptr).data) == get_key(elem)) return false;
 
         const auto new_ptr = NodePtr(header.aux_begin.filePath, 0) + aux_size();
@@ -283,17 +291,123 @@ private:
     }
 
     [[nodiscard]]
-    auto begin_unsafe_get_prev_ptr (const Record& elem, NodePtr it) const
+    auto begin_unsafe_get_leq_ptr (const Record& elem, NodePtr it) const
     {
         NodePtr prev_it = it - 1;
 
         for (;;)
         {
-            Node<Record> prev_node = *prev_it;
+            Node prev_node = *prev_it;
             if (get_key((*(prev_node.next)).data) > get_key(elem))
                 return prev_it;
             prev_it = prev_node.next;
         }
+    }
+
+    [[nodiscard]]
+    auto begin_unsafe_get_less_ptr (const Key& elem, NodePtr it) const
+    {
+        NodePtr prev_it = it - 1;
+
+        for (;;)
+        {
+            Node prev_node = *prev_it;
+            if (!(get_key((*(prev_node.next)).data) < get_key(elem)))
+                return prev_it;
+            prev_it = prev_node.next;
+        }
+    }
+
+    bool try_remove_from_aux (NodePtr& it, const Key& elem) const
+    {
+        if (it == vec_begin()) return false;
+        auto prev = begin_unsafe_get_less_ptr(elem, it);
+        auto prev_node = *prev;
+        auto next = prev_node.next;
+        auto next_node = *next;
+        if (get_key(next_node.data) == get_key(elem))
+        {
+            prev_node.next = next_node.next;
+            next_node.erased = true;
+            prev.set(prev_node);
+            next.set(next_node);
+            return true;
+        }
+        else return false;
+    }
+
+    void remove_from_main (NodePtr& it) const
+    {
+        auto it_node = (*it);
+        auto next_ptr = it_node.next;
+        auto next_node = *next_ptr;
+        it.set(next_node);
+        next_node.erased = true;
+        next_ptr.set(next_node);
+    }
+
+    void pop_back ()
+    {
+        auto it = vec_end() - 1;
+        auto prev = it - 1;
+        auto prev_node = *prev;
+        if (prev_node.next == it)
+        {
+            --header.main_alloc_pos;
+            Pointer<Header>(header.begin.filePath, 0).set(header);
+        }
+        else
+        {
+            flatten_from_prev(it);
+        }
+    }
+
+    void flatten_from_prev (NodePtr& it) const
+    {
+        auto prev = it - 1;
+        auto prev_node = *prev;
+        auto it_node = *it;
+        auto repl = prev_node.next;
+        auto repl_node = *repl;
+        repl_node.next = it_node.next;
+        it.set(repl_node);
+        prev_node.next = it;
+        prev.set(prev_node);
+    }
+
+    void pop_front ()
+    {
+        auto begin = vec_begin();
+        auto begin_node = *begin;
+
+        if (begin_node.next == vec_end()) reset_index();
+        else if (begin_node.next != begin + 1) flatten_into_front();
+        else mark_begin_as_erased();
+    }
+
+    void mark_begin_as_erased ()
+    {
+        auto begin = vec_begin();
+        auto begin_node = *begin;
+        begin_node.erased = true;
+        begin.set(begin_node);
+        ++header.begin;
+        --header.main_alloc_pos;
+        Pointer<Header>(header.begin.filePath, 0).set(header);
+    }
+
+    void flatten_into_front () const
+    {
+        auto begin = vec_begin();
+        auto begin_node = *begin;
+        begin.set(*begin_node.next);
+    }
+
+    void reset_index ()
+    {
+        header.begin.position = sizeof(Header);
+        header.main_alloc_pos = 0;
+        Pointer<Header>(header.begin.filePath, 0).set(header);
     }
 };
 
