@@ -27,19 +27,33 @@ Se espera que al comprar las distintas operaciones con las estructuras propuesta
 ## Fundamente y describa las técnicas
 
 ### File pointer
-Es una estructura de datos que simula el comportamiento de un puntero para archivos, guarda el path del archivo y la posición donde se encuentra dentro de este. Se usará esta estructura dentro de del hash y el sequential para poder simplificar el codigo y mejorar su redabilidad.
+Es una estructura de datos que simula el comportamiento de un puntero para archivos, guarda el path del archivo y la posición donde se encuentra dentro de este. Se usará esta estructura dentro de del hash y el sequential para poder simplificar el codigo y mejorar su redibilidad.
 
-### Dynamic hash
+### Dynamic hash (Extendible Hashing)
+
+La estructura se separa en dos componentes principales:
+- La función hash, que evalua la posicion de cada registro en la estructura.
+- El **bucket**, que mantiene registros de forma secuencial sin ningun orden. Todos los buckets en un file evaluan de forma igual para la funcion hash. Todos los buckets tienen un tamaño máximo desde su creación. Cada bucket tiene ademas un miembro **depth** que determina su profundidad local.
+- El **directorio** (directory), que mantiene el indice con los punteros a todos los buckets creados. El directory tambien tiene un miembro **depth**, que determina la profundidad global.
+
+Existen varias propiedades para la estructura:
+- Todos los buckets tienen el mismo tamaño máximo, que debe ser constante. Ningun bucket puede tener más registros que lo permitido por su tamaño máximo.
+- Ningun bucket puede tener una depth mayor a la depth del directorio.
+- No se repiten las keys.
+- Un bucket con prefijo 1 solo puede existir si existe un bucket analogo con prefijo 0.
 
 #### Insertion
-Consiste en buscar el puntero que contiene la key que buscamos dentro del index file. Al buscar el bucket con una llave, nos fijamos si este se encuentra lleno o no. Si este bucket se encuentra lleno, creamos otro bucket con una operacion split, la cual crea un hash key distinto, y distribuimos del bucket anterior ahí. En caso contrario, insertamos el hash en el bucket original.
+Se utiliza la funcion hash para mappear el registro a insertar al bucket correspondiente. Luego, se busca secuencialmente en el bucket para chequear que no haya otro elemento con la misma key. Si no existía, se inserta. En ese caso, nos fijamos si este se encuentra lleno o no. Si se encuentra lleno, se chequea que se mantenga la segunda propiedad. Si no lo hace, se duplica el tamaño máximo del array de indices del directorio y se aumenta en 1 la depth del directorio. Luego, se divide el bucket en dos buckets con depth incrementada en 1, y se distribuyen las keys hasta que ya no hayan violaciones a las dos propiedades.
 
 #### Search
-Consiste de buscar el puntero que contiene la key que buscamos dentro del index file. Obtenemos el bucket usando el file pointer, recorremos por todos los record dentro del bucket y comparamos key por key.
+Consiste de buscar el registro que contiene la key que buscamos dentro del index file. Obtenemos el bucket usando la funcion hash. Una vez obtenido, se itera secuencialmente entre todos los registros. Si se encuentra un registro con key igual al input, se retorna el registro. Caso contrario, no se retorna nada.
 
+#### Search por rango
+Se itera sobre todos los registros en todos los buckets, y se retorna todos los que se tienen una key que se encuentra en el rango especificado.
 
 #### Delete
-Buscamos dentro del bucket el puntero que contiene la key que buscamos dentro del index file. Si el bucket con una llave, buscamos el registro con la key dentro del bucket, si lo encuentra lo elimina. Si el bucket se encuentra vacio despues de la eliminacion, eliminamos esa key dentro del hash table.
+Se utiliza la funcion hash para mappear el registro a insertar al bucket correspondiente. Luego, se busca el elemento en el bucket. Si existe, se intercambia con el ultimo y se poppea. En ese caso, nos fijamos si este se encuentra vacio o no. Si se encuentra vacio, se mergea al bucket analogo. Si el merge lleva a que no haya ningun bucket con la misma depth que el directorio, se divide el tamaño de la estructura.
+
 
 ### Sequential File
 Este se apoya de:
