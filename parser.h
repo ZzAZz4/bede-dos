@@ -9,11 +9,10 @@
 #include "library.h"
 
 
-const int BucketSize = 200;
 
 
 template<typename T , template<class >  class IndexType>
-void readCsv(const std::string& file = "test.csv"){
+void readCsv(const std::string& file = "test.csv", bool  seq = false){
     std::fstream stream(file,std::ios::out | std::ios::in);
     IndexType<T> Index("index", Pointer<>::CTE_FILE);
 
@@ -22,11 +21,12 @@ void readCsv(const std::string& file = "test.csv"){
         exit(EXIT_FAILURE);
     }
 
+
     std::string line;
     std::getline(stream, line); // skip the 1st line, you know why
     int index = 0;
-    int disrupter = rand();
     int pushed = 0;
+    int disruptor = rand();
     while(std::getline(stream, line)){
         if (line.empty()) continue;// skip empty lines
 
@@ -37,8 +37,8 @@ void readCsv(const std::string& file = "test.csv"){
         wineQuality reg {};
 
 //        std::cout<<"index:"<<index<<'\n';
-        reg.id = index ;
-
+        if(seq) reg.id = index * disruptor % (1500 * 10);
+        else reg.id = index;
 
         iss>>reg.fixed_acidity;
         std::getline(iss, line, ',');
@@ -70,7 +70,7 @@ void readCsv(const std::string& file = "test.csv"){
         pushed++;
 
     }
-    std::cout<<"pushed "<<pushed<<"\n";
+    std::cout<<"pushed"<<pushed<<"\n";
 
 }
 

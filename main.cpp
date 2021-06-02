@@ -35,7 +35,7 @@ std::ostream& operator << (std::ostream& os, const Record& r)
 }
 
 template<typename T , template<class >  class IndexType>
-void test(){
+void test(bool seq){
     int size = 100;
     std::cout<<"select test size: 100,200,500,1000,1500\n>";
     std::cin>>size;
@@ -61,7 +61,7 @@ void test(){
     }
     std::cout<<"testing Hash:\n";
     std::cout<<"inserting to Hash:\n";
-    readCsv<T,IndexType>(file);
+    readCsv<T,IndexType>(file,seq);
     std::cout<<"Index of size " +std::to_string(size) + " created\n";
 
 
@@ -88,10 +88,16 @@ void test(){
 
 void query_menu(){
     std::string buffer;
-    std::cout<<"insert unq query";
-    std::cin>>buffer;
+    std::cout<<"insertar un query:\n";
+    std::cout<<">";
+    std::cin.get();
+    std::getline(std::cin,buffer);
+
+//    parsersql("select 0 using index hash");
     parsersql(buffer);
+
 }
+
 
 void menu()
 {
@@ -99,7 +105,7 @@ void menu()
     std::cout<<"PROYECTO BASE DE DATOS II\n\n";
     while (true)
     {
-        std::cout<<"1. Insertar un csv\n";
+        std::cout<<"1. Insertar un query\n";
         std::cout<<"2. Probar con queries existentes\n";
         std::cout<<"3. Salir del programa\n";
         std::cout<<"> ";
@@ -117,10 +123,10 @@ void menu()
                 std::cin>>indextype;
                 switch(indextype){
                     case 1:
-                        test<wineQuality,HashIndex>();
+                        test<wineQuality,HashIndex>(false);
                         break;
                     case 2:
-                        test<wineQuality,SeqIndex>();
+                        test<wineQuality,SeqIndex>(true);
                         break;
                     default:
                         std::cout<<"Insert a valid index\n";
