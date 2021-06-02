@@ -115,7 +115,9 @@ Para ver los resultados completos, referirse al siguiente [spreadsheet](https://
 
 #### Insert
 
-O(1). Se emplean punteros para la inserción.
+
+En el mejor caso, la inserción se realiza sin violacion de las propiedades. Por lo que solo se realiza el calculo del hash y un memory writte.
+El peor caso sucede cuando todas las entries mappean al mismo bucket. En caso lo hagan, cada M buckets se realiza un split 
 
 #### Find
 
