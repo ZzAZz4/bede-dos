@@ -172,7 +172,7 @@ Si el registro esta en el aux file, se tiene que traversar toda la linked list, 
 **Worst case: O(AUX_SIZE + lg(N)) = O(N + lg(N)) = O(N)**
 
 El caso promedio es, en general, boundeado por ambos casos:
-**Average case: O(AUX_SIZE + lg(N)) ~ O(lg(N))**
+**Average case: O(AUX_SIZE + lg(N))**
 
 ### Tipo de isntrucciones del query
 
