@@ -46,7 +46,13 @@ Este se apoya de:
 - un **índice (main)** donde se ubican registros ordenados físicamente por un campo, y
 - un archive **auxiliar (aux)** en el que se inserta el próximo espacio disponible y utiliza punteros para mantener el orden del archivo principal.
 Para la implementación que se está realizando, la cabecera de esta estructura cuenta con punteros cuales apuntan a la posición inicial de los arrays que representan a ambos “archivos”, así como sus respectivos tamaños.
-Propiedades importantes por recalcar del sequential file incluyen que: está ordenado físicamente y que no puede haber un registro vacío entre dos registros ocupados si es que todavía hay registros en el archivo auxiliar.
+
+Propiedades importantes por recalcar del sequential file incluyen que: 
+- Para todos los nodos del main file, se mantiene el orden físico entre un elemento y el siguiente no eliminado.
+- Para todos los nodos, el siguiente nodo de acuerdo al miembro **next** mantiene el orden entre un elemento y el siguiente.
+- Para cualquier nodo, puede tener un nodo next en el aux file si es que la siguiente entrada no esta elmiminada. Caso contrario, el registro vacío es reemplazado por el siguiente registro.
+- El aux file no está ordenado físicamente, y funciona como una heap. Sin embargo, el orden por next igual se mantiene. 
+- Una cadena en el aux debe terminar en otro nodo del main file.
 
 #### Insert
 
