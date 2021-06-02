@@ -115,31 +115,64 @@ Para ver los resultados completos, referirse al siguiente [spreadsheet](https://
 
 #### Insert
 
+En el mejor caso, la inserción se realiza sin violacion de las propiedades. Por lo que solo se realiza el calculo del hash y un memory write. 
+**Best case: O(1)**
 
-En el mejor caso, la inserción se realiza sin violacion de las propiedades. Por lo que solo se realiza el calculo del hash y un memory writte.
-El peor caso sucede cuando todas las entries mappean al mismo bucket. En caso lo hagan, cada M buckets se realiza un split 
+El peor caso sucede cuando todas las entries mappean al mismo bucket. En caso lo hagan, se realiza un split, que tiene que sobreescribir los nuevos buckets a crear.
+Hay N/M buckets existentes, donde N es la cantidad de registros y M es el bucket size.
+**Worst case: O(N/M)**
+
+Dado que el worst case sucede solo cada N inserts aproximadamente, se tiene en promedio 1/M + 1 operaciones. Esto es bounded por una constante.
+**Average case: O(1)**
+
 
 #### Find
 
-O(1 + colisión)). Si bien se mapean los elementos, es probable que se produzcan colisiones, cuales generalmente van al archivo auxiliar.
+Solo pueden suceder dos lookups: El primero es un O(1) calculation del hash. El otro es un lookup en desde 1 hasta M registros.
+
+**Best case: O(1)**
+**Worst case: O(1 + M) = O(1)**
+**Average case: O(1 + M / 2) = O(1)**
 
 #### Delete
 
-O(1). Similar al insert, se ubica la posición a borrar empleando punteros.
+Similar al insert, puesto que solo se incurre en alta complejidad en el shrink operation.
+
+**Best case: O(1)**
+**Worst case: O(N/M)**
+**Average case: O(1)**
+
 
 ### Sequential file
 
 #### Insert
 
-O(1). Solo se realiza una inserción directa empleando la posición física del registro.
+Dado que puede que el record vaya a insertarse en un espacio vacío ubicado exactamente al medio, el binary search solo haria una iteracion, y luego sucederia solo un write.
+**Best case: O(1)**
+
+Sin embargo, si se intenta insertar entre dos registros, es posible que se itere todo el aux. El aux puede potencialmente tener a todos los elementos, excepto a los dos del inicio y el final, en caso no se haya reestructurado.
+**Worst case: O(AUX_SIZE + lg(N)) = O(N + lg(N)) = O(N)**
+
+El caso promedio es, en general, boundeado por ambos casos:
+**Average case: O(AUX_SIZE + lg(N)) ~ O(lg(N))**
 
 #### Find
 
-O(log n). Aplica búsqueda binaria, operación cuyo costo es el indicado.
+Solo realiza busqueda binaria.
+**Best case: O(1)**
+**Worst case: O(lg(N))**
+**Average case: O(lg(N))**
 
 #### Delete
 
-O(1). Solo se está removiendo el elemento indicado empleando punteros.
+Las operaciones se amortizan mediante el uso de deleted entries. Por lo que varios casos del delete dado el puntero a borrar son O(1). Binary search podria encontrarlo en una iteracion.
+**Best case: O(1)**
+
+Si el registro esta en el aux file, se tiene que traversar toda la linked list, que puede tener potencialmente O(N) entries.
+**Worst case: O(AUX_SIZE + lg(N)) = O(N + lg(N)) = O(N)**
+
+El caso promedio es, en general, boundeado por ambos casos:
+**Average case: O(AUX_SIZE + lg(N)) ~ O(lg(N))**
 
 ## Pruebas de uso y presentación
 
