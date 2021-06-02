@@ -72,18 +72,26 @@ Propiedades importantes por recalcar del sequential file incluyen que:
 
 > Para insertar un registro, debe localizarse la posición en la que será insertado el nuevo registro. Si el espacio está libre (es el dato que sigue secuencialmente o se ha eliminado un registro y queda un espacio para colocar el nuevo dato), insertarlo directamente. Caso contrario, insertarlo en un espacio adicional (usualmente en un archivo aparte auxiliar, del tamaño de un buffer, que almacena los nuevos valores a insertar como un heap) y actualizar los punteros para saber quién sigue.
 
-Comienza iterando el vector del índice para buscar su posible ubicación. Luego considera cinco casos:
-- Si el elemento **va al final del array**, lo inserta.
-- Si el elemento **solía existir**, pero ha sido eliminado, lo añade en esa posición.
+Se ubica la posicion del primer elemento que sea menor o igual al elemento a insertar mediante una busqueda binaria. Luego, se consideran cinco casos:
+
 - Si el elemento **ya existe**, no lo inserta.
-- Si el elemento **va al inicio**, lo inserta.
-- Caso contrario (**va en alguna posición intermedia**), intenta colocarlo en la posición anterior.
+- Si el elemento **va al final del array**, lo inserta directamente.
+- Si la posicion **esta vacia**, lo añade en esa posición.
+- Si el elemento **va al inicio**, se reemplaza al elemento incial por el elemento a insertar y se coloca el elemento anteriormente alli en el aux file.
+- Caso contrario (**va en alguna posición intermedia**), intenta colocarlo en una cadena en el aux que derive de la posición del insert.
 
 #### Search
 
 > Se realiza una búsqueda binaria O(log N). Se modifica tomando la posición inicial 0 y la longitud de archivo (considerando que se trabaja con registros de longitud fija no debería haber problema calculando esto). Se lee el registro en la posición del medio, se obtiene su key, se compara y se va buscando.
 
-Se aplica una búsqueda binaria en el índice. Esto puede darse debido a que los datos están ordenados de manera física. 
+Se aplica una búsqueda binaria en el índice para encontrar la posicion de insertion. Esto puede darse debido a que los datos están ordenados de manera física. Luego, existen varios casos:
+- Si se entontro directamente el elemento con la key, se retorna el elemento.
+- Si se encuentra, pero esta borrado, no se retorna nada.
+- Caso contrario, podría estar en la cadena del anterior elemento. Por lo que se hace busqueda secuencial en la cadena del aux.
+
+#### Search por rango
+
+Similar a search, pero se continua iterando desde la posicion del primer elemento mediante los punteros next, hasta que se encuentre un elemento cuya key salga del rango.
 
 #### Delete
 
@@ -91,9 +99,9 @@ Se aplica una búsqueda binaria en el índice. Esto puede darse debido a que los
 
 Primero se ubica la posición del nodo a eliminar. Dependiendo de esta posición se toman acciones diferentes:
 - Si **está al inicio**, simplemente se marca como eliminado.
-- Si **está al final**, ir a la posición anterior y continuar el array.
-- Si **está en alguna posición al medio**, cambiar los punteros. Reestructurar/mover punteros si es necesario.
-- Si es que **está en el auxiliar**, eliminarlo, manejando los punteros que se relacionan con este. Reducir el tamaño del archivo auxiliar.
+- Si **está al final**, reducir el tamaño del main file en 1.
+- Si **está en alguna posición al medio**, se reemplaa por el elemento siguiente, y se marca el espacio que quedó vacio como eliminado.
+- Si es que **está en el auxiliar**, reemplazarlo por el siguiente.
 
 
 
