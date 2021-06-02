@@ -128,97 +128,6 @@ struct SeqIndex
 
     }
 
-    bool try_remove_from_aux (NodePtr& it, const Key& elem) const
-    {
-        if (it == vec_begin()) return false;
-        auto prev = begin_unsafe_get_less_ptr(elem, it);
-        auto prev_node = *prev;
-        auto next = prev_node.next;
-        auto next_node = *next;
-        if (get_key(next_node.data) == get_key(elem))
-        {
-            prev_node.next = next_node.next;
-            next_node.erased = true;
-            prev.set(prev_node);
-            next.set(next_node);
-            return true;
-        }
-        else return false;
-    }
-
-    void remove_from_main (NodePtr& it) const
-    {
-        auto it_node = (*it);
-        auto next_ptr = it_node.next;
-        auto next_node = *next_ptr;
-        it.set(next_node);
-        next_node.erased = true;
-        next_ptr.set(next_node);
-    }
-
-    void pop_back ()
-    {
-        auto it = vec_end() - 1;
-        auto prev = it - 1;
-        auto prev_node = *prev;
-        if (prev_node.next == it)
-        {
-            --header.main_alloc_pos;
-            Pointer<Header>(header.begin.filePath, 0).set(header);
-        }
-        else
-        {
-            flatten_from_prev(it);
-        }
-    }
-
-    void flatten_from_prev (NodePtr& it) const
-    {
-        auto prev = it - 1;
-        auto prev_node = *prev;
-        auto it_node = *it;
-        auto repl = prev_node.next;
-        auto repl_node = *repl;
-        repl_node.next = it_node.next;
-        it.set(repl_node);
-        prev_node.next = it;
-        prev.set(prev_node);
-    }
-
-    void pop_front ()
-    {
-        auto begin = vec_begin();
-        auto begin_node = *begin;
-
-        if (begin_node.next == vec_end()) reset_index();
-        else if (begin_node.next != begin + 1) flatten_into_front();
-        else mark_begin_as_erased();
-    }
-
-    void mark_begin_as_erased ()
-    {
-        auto begin = vec_begin();
-        auto begin_node = *begin;
-        begin_node.erased = true;
-        begin.set(begin_node);
-        ++header.begin;
-        --header.main_alloc_pos;
-        Pointer<Header>(header.begin.filePath, 0).set(header);
-    }
-
-    void flatten_into_front () const
-    {
-        auto begin = vec_begin();
-        auto begin_node = *begin;
-        begin.set(*begin_node.next);
-    }
-
-    void reset_index ()
-    {
-        header.begin.position = sizeof(Header);
-        header.main_alloc_pos = 0;
-        Pointer<Header>(header.begin.filePath, 0).set(header);
-    }
 
     [[nodiscard]]
     std::vector <Record> find (const Key& first, const Key& last) const
@@ -406,6 +315,98 @@ private:
                 return prev_it;
             prev_it = prev_node.next;
         }
+    }
+
+    bool try_remove_from_aux (NodePtr& it, const Key& elem) const
+    {
+        if (it == vec_begin()) return false;
+        auto prev = begin_unsafe_get_less_ptr(elem, it);
+        auto prev_node = *prev;
+        auto next = prev_node.next;
+        auto next_node = *next;
+        if (get_key(next_node.data) == get_key(elem))
+        {
+            prev_node.next = next_node.next;
+            next_node.erased = true;
+            prev.set(prev_node);
+            next.set(next_node);
+            return true;
+        }
+        else return false;
+    }
+
+    void remove_from_main (NodePtr& it) const
+    {
+        auto it_node = (*it);
+        auto next_ptr = it_node.next;
+        auto next_node = *next_ptr;
+        it.set(next_node);
+        next_node.erased = true;
+        next_ptr.set(next_node);
+    }
+
+    void pop_back ()
+    {
+        auto it = vec_end() - 1;
+        auto prev = it - 1;
+        auto prev_node = *prev;
+        if (prev_node.next == it)
+        {
+            --header.main_alloc_pos;
+            Pointer<Header>(header.begin.filePath, 0).set(header);
+        }
+        else
+        {
+            flatten_from_prev(it);
+        }
+    }
+
+    void flatten_from_prev (NodePtr& it) const
+    {
+        auto prev = it - 1;
+        auto prev_node = *prev;
+        auto it_node = *it;
+        auto repl = prev_node.next;
+        auto repl_node = *repl;
+        repl_node.next = it_node.next;
+        it.set(repl_node);
+        prev_node.next = it;
+        prev.set(prev_node);
+    }
+
+    void pop_front ()
+    {
+        auto begin = vec_begin();
+        auto begin_node = *begin;
+
+        if (begin_node.next == vec_end()) reset_index();
+        else if (begin_node.next != begin + 1) flatten_into_front();
+        else mark_begin_as_erased();
+    }
+
+    void mark_begin_as_erased ()
+    {
+        auto begin = vec_begin();
+        auto begin_node = *begin;
+        begin_node.erased = true;
+        begin.set(begin_node);
+        ++header.begin;
+        --header.main_alloc_pos;
+        Pointer<Header>(header.begin.filePath, 0).set(header);
+    }
+
+    void flatten_into_front () const
+    {
+        auto begin = vec_begin();
+        auto begin_node = *begin;
+        begin.set(*begin_node.next);
+    }
+
+    void reset_index ()
+    {
+        header.begin.position = sizeof(Header);
+        header.main_alloc_pos = 0;
+        Pointer<Header>(header.begin.filePath, 0).set(header);
     }
 };
 
