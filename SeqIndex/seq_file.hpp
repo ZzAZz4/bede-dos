@@ -111,7 +111,12 @@ struct SeqIndex
             auto begin = vec_begin();
             if (it == begin) {
                 auto begin_node = *begin;
-                if (begin_node.next != vec_end() && begin_node.next != begin + 1) {
+                if (begin_node.next == vec_end()) {
+                    this->header.begin.position = sizeof(Header);
+                    header.main_alloc_pos = 0;
+                    Pointer<Header>(header.begin.filePath, 0).set(header);
+                }
+                else if ( begin_node.next != begin + 1) {
                     begin.set(*begin_node.next);
                 }
                 else {

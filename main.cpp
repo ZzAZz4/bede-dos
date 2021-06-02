@@ -60,12 +60,36 @@ int main (int argc, char* argv[])
     test.push({4, 7.4,0.7,0.0,1.9,0.076,11.0,34.0,0.9978,3.51,0.56,9.4 });
     std::cout << test.header.main_alloc_pos << '\n';
 
-    test.print();
 
+    test.print();
+    std::cout << std::endl;
+
+    test.pop(10);
+
+    test.print();
+    std::cout << std::endl;
+
+    test.pop(4);
+
+    test.print();
+    std::cout << std::endl;
+
+    test.pop(1);
+
+    test.print();
     std::cout << std::endl;
 
     test.pop(0);
-    test.push({0, 7.4,0.7,0.0,1.9,0.076,11.0,34.0,0.9978,3.51,0.56,9.4 });
+
+    test.print();
+    std::cout << std::endl;
+
+    test.pop(2);
+
+    test.print();
+    std::cout << std::endl;
+
+//    test.push({0, 7.4,0.7,0.0,1.9,0.076,11.0,34.0,0.9978,3.51,0.56,9.4 });
 
     test.print();
 
@@ -127,14 +151,14 @@ int main (int argc, char* argv[])
 //        }
 
     int size = 100;
-    HashIndex<wineQuality> hashIndexCopy("index", Pointer<>::WTE_FILE);
+//    HashIndex<wineQuality> hashIndexCopy("index", Pointer<>::WTE_FILE);
     for(int i = 0; i < 5; i ++) {
         Sw::ScopedStopwatch<stopwatch::microseconds> sw("test");
 //        if (hashIndexCopy.push({ (i+1) * size + 5, 7.4, 0.7, 0.0, 1.9, 0.076, 11.0, 34.0, 0.9978, 3.51, 0.56, 9.4}))
 //            std::cout << "A ";
 //        if(hashIndexCopy.find(i * size ).has_value() ) std::cout<<"A ";
     }
-    hashIndexCopy.print();
+//    hashIndexCopy.print();
 
 
 
