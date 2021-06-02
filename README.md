@@ -187,7 +187,7 @@ ex:
 - select <value> using index
 - select 0 : 2 using index hash // importa el espacio
 # delete 
-- delete 0 using <index type>
+- delete 0 using index type
 
 ## Pruebas de uso y presentación
 
