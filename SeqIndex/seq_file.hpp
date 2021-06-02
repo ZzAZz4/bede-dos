@@ -208,7 +208,7 @@ struct SeqIndex
     }
 
     [[nodiscard]] auto buffer_begin () const
-    { NodePtr(header.begin.filePath, sizeof(Header)); }
+    { return NodePtr(header.begin.filePath, sizeof(Header)); }
 
     [[nodiscard]] auto vec_begin () const
     { return header.begin; }
@@ -275,7 +275,17 @@ private:
         // so it would inmediately promote back. Idk about promotion and that,
         // so here is the hardcoded version.
 
+        // Including hardcoded popped case bcz yes
+
         auto begin = vec_begin();
+        if (std::distance(buffer_begin(), begin) > 0) {
+            header.begin--;
+            header.main_alloc_pos++;
+            auto new_begin = vec_begin();
+            new_begin.set(Node(elem, begin));
+            return;
+        }
+
         auto new_ptr = allocate_after_begin(begin);
 
         auto begin_node = *begin;
