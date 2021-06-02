@@ -191,5 +191,5 @@ ex:
 
 ## Pruebas de uso y presentación
 
-- [Explicación del proyecto](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-- [Pruebas funcionales](https://www.youtube.com/watch?v=Jui-Td1HbXI)
+- [Explicación del proyecto](https://drive.google.com/drive/folders/1c52K161WMnkI97CqyCIYg_X1Z9N3R3mv?usp=sharing)
+- [Pruebas funcionales](https://drive.google.com/drive/folders/1c52K161WMnkI97CqyCIYg_X1Z9N3R3mv?usp=sharing)
