@@ -174,6 +174,21 @@ Si el registro esta en el aux file, se tiene que traversar toda la linked list, 
 El caso promedio es, en general, boundeado por ambos casos:
 **Average case: O(AUX_SIZE + lg(N)) ~ O(lg(N))**
 
+### Tipo de isntrucciones del query
+# tipo de index:
+- index hash
+- sequential file
+# insert:
+- insert  from file ('<file path>') using <index type>
+ex:
+  - insert  from file ('test100.csv') using <index type>
+# select:
+- select * using <index type>
+- select <value> using <index>
+- select 0 : 2 using index hash // improta el espacio
+# delete 
+- delete 0 using <index type>
+
 ## Pruebas de uso y presentación
 
 - [Explicación del proyecto](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
