@@ -179,13 +179,13 @@ El caso promedio es, en general, boundeado por ambos casos:
 - index hash
 - sequential file
 # insert:
-- insert  from file ('<file path>') using <index type>
+- insert  from file ('file path') using index type
 ex:
-  - insert  from file ('test100.csv') using <index type>
+  - insert  from file ('test100.csv') using index type
 # select:
-- select * using <index type>
-- select <value> using <index>
-- select 0 : 2 using index hash // improta el espacio
+- select * using index type
+- select <value> using index
+- select 0 : 2 using index hash // importa el espacio
 # delete 
 - delete 0 using <index type>
 
